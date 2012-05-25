@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WebView Demo</string>
+    <string name="back">Atrás</string>
+    <string name="forward">Siguiente</string>
+    <string name="stop">Detener</string>
+    <string name="go">Ir</string>
+    <string name="ok">OK</string>
+    <string name="history">Historial</string>
+    <string name="cancel">Cancelar</string>
+    <string name="download">Descarga</string>
+    <string name="question">¿Desea guardar este fichero?</string>
+    <string name="result">Fichero guardado: </string>
+    <string name="clear">Borrar</string>
+    <string name="close">Cerrar</string>
+
+</resources>

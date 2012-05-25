@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WebView Demo</string>
+    <string name="back">Back</string>
+    <string name="forward">Forward</string>
+    <string name="stop">Stop</string>
+    <string name="history">History</string>
+    <string name="go">Go</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="download">Download</string>
+    <string name="question">Do you want to save this file?</string>
+    <string name="result">File saved: </string>
+    <string name="clear">Clear</string>
+    <string name="close">Close</string>
+
+</resources>
