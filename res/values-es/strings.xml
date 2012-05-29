@@ -14,5 +14,6 @@
     <string name="result">Fichero guardado: </string>
     <string name="clear">Borrar</string>
     <string name="close">Cerrar</string>
+    <string name="stopping">deteniendo</string>
 
 </resources>

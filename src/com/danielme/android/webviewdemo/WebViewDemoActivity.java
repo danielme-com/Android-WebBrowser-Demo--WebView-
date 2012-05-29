@@ -59,6 +59,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class WebViewDemoActivity extends Activity
 {
@@ -307,6 +308,7 @@ public class WebViewDemoActivity extends Activity
 	public void stop(View view)
 	{
 		webview.stopLoading();
+		Toast.makeText(this, getString(R.string.stopping), Toast.LENGTH_LONG).show();
 	}
 
 	public void history(View view)

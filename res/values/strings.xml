@@ -14,5 +14,6 @@
     <string name="result">File saved: </string>
     <string name="clear">Clear</string>
     <string name="close">Close</string>
+    <string name="stopping">stopping</string>
 
 </resources>
