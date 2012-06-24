@@ -1,20 +1,20 @@
 /*
-* Copyright (C) 2012 Daniel Medina  - http://danielme.com
- 
-   This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>
-
-*/
+ * Copyright (C) 2012 Daniel Medina <http://danielme.com>
+ * 
+ * This file is part of "Android WebView Demo".
+ * 
+ * "Android WebView Demo" is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * "Android WebView Demo" is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License version 3
+ * along with this program.  If not, see <http://www.gnu.org/licenses/gpl-3.0.html/>
+ */
 
 package com.danielme.android.webviewdemo;
 
@@ -73,6 +73,8 @@ public class WebViewDemoActivity extends Activity
 
 	private ArrayAdapter<String> dialogArrayAdapter;
 
+	private Button stopButton;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -83,6 +85,8 @@ public class WebViewDemoActivity extends Activity
 		webview = (WebView) findViewById(R.id.webkit);
 		url = (EditText) findViewById(R.id.url);
 		progressBar = (ProgressBar) findViewById(R.id.progressbar);	
+		stopButton = ((Button) findViewById(R.id.stopButton));
+
 
 		// javascript and zoom
 		webview.getSettings().setJavaScriptEnabled(true);
@@ -173,7 +177,7 @@ public class WebViewDemoActivity extends Activity
 		});
 		
 		builder.setNegativeButton(R.string.close, null);
-
+		
 		dialogArrayAdapter = new ArrayAdapter<String>(this, R.layout.history, historyStack)
 		{
 			@Override
@@ -203,6 +207,7 @@ public class WebViewDemoActivity extends Activity
 			public void onClick(DialogInterface dialog, int item)
 			{
 				webview.loadUrl(historyStack.get(item).toString());
+				stopButton.setEnabled(true);
 			}
 
 		});
@@ -261,14 +266,14 @@ public class WebViewDemoActivity extends Activity
 			
 			historyStack.add(0, url);
 
-			((Button) WebViewDemoActivity.this.findViewById(R.id.stopButton)).setEnabled(true);
+			stopButton.setEnabled(true);
 			updateButtons();
 		}
 
 		@Override
 		public void onPageFinished(WebView view, String url)
 		{
-			((Button) WebViewDemoActivity.this.findViewById(R.id.stopButton)).setEnabled(false);
+			stopButton.setEnabled(false);
 			updateButtons();
 		}
 
@@ -290,7 +295,7 @@ public class WebViewDemoActivity extends Activity
 		InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		inputMethodManager.hideSoftInputFromWindow(url.getWindowToken(), 0);
 
-		((Button) WebViewDemoActivity.this.findViewById(R.id.stopButton)).setEnabled(true);
+		stopButton.setEnabled(true);
 
 		webview.loadUrl(url.getText().toString());
 	}
