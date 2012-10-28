@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 
 /*
  * Copyright (C) 2012 Daniel Medina <http://danielme.com>
  * 
@@ -17,23 +15,51 @@
  * You should have received a copy of the GNU General Public License version 3
  * along with this program.  If not, see <http://www.gnu.org/licenses/gpl-3.0.html/>
  */
- -->
-<resources>
+package com.danielme.android.webviewdemo;
 
-    <string name="app_name">WebView Demo</string>
-    <string name="back">Back</string>
-    <string name="forward">Forward</string>
-    <string name="stop">Stop</string>
-    <string name="history">History</string>
-    <string name="go">Go</string>
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="download">Download</string>
-    <string name="question">Do you want to save this file?</string>
-    <string name="result">File saved: </string>
-    <string name="clear">Clear</string>
-    <string name="close">Close</string>
-    <string name="stopping">stopping</string>
-    <string name="favicon">favicon</string>
+import android.graphics.Bitmap;
 
-</resources>
+public class Link
+{
+	
+	private String url;
+	
+	private Bitmap favicon;
+	
+	public Link()
+	{
+		
+	}
+
+	
+	public Link(String url, Bitmap favicon)
+	{
+		super();
+		this.url = url;
+		this.favicon = favicon;
+	}
+
+
+	public String getUrl()
+	{
+		return url;
+	}
+
+	public void setUrl(String url)
+	{
+		this.url = url;
+	}
+
+	public Bitmap getFavicon()
+	{
+		return favicon;
+	}
+
+	public void setFavicon(Bitmap favicon)
+	{
+		this.favicon = favicon;
+	}
+	
+	
+
+}

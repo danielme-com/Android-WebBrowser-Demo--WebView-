@@ -27,6 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -34,6 +35,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -51,12 +53,14 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.DownloadListener;
 import android.webkit.WebChromeClient;
+import android.webkit.WebIconDatabase;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -67,27 +71,36 @@ public class WebViewDemoActivity extends Activity
 
 	private ProgressBar progressBar;
 
-	private EditText url;
+	private EditText urlEditText;
 
-	private List<String> historyStack;
+	private List<Link> historyStack;
 
-	private ArrayAdapter<String> dialogArrayAdapter;
+	private ArrayAdapter<Link> dialogArrayAdapter;
 
 	private Button stopButton;
+	
+	private ImageView faviconImageView;
+	
+	private static final Pattern urlPattern = Pattern.compile("^(https?|ftp|file)://(.*?)");
 
+
+	@SuppressLint("SetJavaScriptEnabled")
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		historyStack = new LinkedList<String>();
+		historyStack = new LinkedList<Link>();
 		webview = (WebView) findViewById(R.id.webkit);
-		url = (EditText) findViewById(R.id.url);
+		faviconImageView = (ImageView) findViewById(R.id.favicon);
+
+		urlEditText = (EditText) findViewById(R.id.url);
 		progressBar = (ProgressBar) findViewById(R.id.progressbar);	
 		stopButton = ((Button) findViewById(R.id.stopButton));
-
-
+		//favicon
+		WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
+		
 		// javascript and zoom
 		webview.getSettings().setJavaScriptEnabled(true);
 		webview.getSettings().setBuiltInZoomControls(true);
@@ -121,6 +134,24 @@ public class WebViewDemoActivity extends Activity
 			public void onReceivedTitle(WebView view, String title)
 			{
 				WebViewDemoActivity.this.setTitle(getString(R.string.app_name) + " - " + WebViewDemoActivity.this.webview.getTitle());
+			}
+			
+			@Override
+			public void onReceivedIcon(WebView view, Bitmap icon)
+			{				
+				faviconImageView.setImageBitmap(icon);
+				view.getUrl();
+				boolean b = false;
+				ListIterator<Link> listIterator = historyStack.listIterator();
+				while (!b && listIterator.hasNext())
+				{
+					Link link = listIterator.next();
+					if (link.getUrl().equals(view.getUrl()))
+					{
+						link.setFavicon(icon);
+						b = true;
+					}
+				}
 			}
 
 		});
@@ -178,26 +209,39 @@ public class WebViewDemoActivity extends Activity
 		
 		builder.setNegativeButton(R.string.close, null);
 		
-		dialogArrayAdapter = new ArrayAdapter<String>(this, R.layout.history, historyStack)
+		dialogArrayAdapter = new ArrayAdapter<Link>(this, R.layout.history, historyStack)
 		{
 			@Override
 			public View getView(int position, View convertView, ViewGroup parent)
 			{
 				//holder pattern
-				TextView holder = null;
+				LinkHolder holder = null;
 				if (convertView == null)
 				{
 					LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					convertView = inflater.inflate(R.layout.history, null);
-					holder = (TextView) convertView.findViewById(R.id.textView1);
+					holder = new LinkHolder();
+					holder.setUrl((TextView) convertView.findViewById(R.id.textView1));
+					holder.setImageView((ImageView) convertView.findViewById(R.id.favicon));
+
 					convertView.setTag(holder);
 				}
 				else
 				{
-					holder = (TextView) convertView.getTag();
+					holder = (LinkHolder) convertView.getTag();
 				}
 
-				holder.setText(getItem(position));
+				holder.getUrl().setText(historyStack.get(position).getUrl());
+				Bitmap favicon = historyStack.get(position).getFavicon();
+				if (favicon == null)
+				{
+					holder.getImageView().setImageDrawable(super.getContext().getResources().getDrawable(R.drawable.favicon_default_light));
+				}
+				else
+				{
+					holder.getImageView().setImageBitmap(favicon);
+				}
+
 				return convertView;
 			}
 		};
@@ -206,7 +250,7 @@ public class WebViewDemoActivity extends Activity
 		{
 			public void onClick(DialogInterface dialog, int item)
 			{
-				webview.loadUrl(historyStack.get(item).toString());
+				webview.loadUrl(historyStack.get(item).getUrl());
 				stopButton.setEnabled(true);
 			}
 
@@ -249,25 +293,27 @@ public class WebViewDemoActivity extends Activity
 		@Override
 		public void onPageStarted(WebView view, String url, Bitmap favicon)
 		{
+			//resets favicon
+			WebViewDemoActivity.this.faviconImageView.setImageDrawable(WebViewDemoActivity.this.getResources().getDrawable(R.drawable.favicon_default_dark));
 			// shows the current url
-			WebViewDemoActivity.this.url.setText(url);
-
+			WebViewDemoActivity.this.urlEditText.setText(url);
+			
 			//only one occurrence
 			boolean b = false;
-			ListIterator<String> listIterator = historyStack.listIterator();
+			ListIterator<Link> listIterator = historyStack.listIterator();
 			while (listIterator.hasNext() && !b)
 			{
-				if (listIterator.next().equals(url))
+				if (listIterator.next().getUrl().equals(url))
 				{
 					b = true;
 					listIterator.remove();
 				}
 			}
-			
-			historyStack.add(0, url);
+			Link link = new Link(url, favicon);
+			historyStack.add(0, link);
 
 			stopButton.setEnabled(true);
-			updateButtons();
+			updateButtons();			
 		}
 
 		@Override
@@ -293,11 +339,16 @@ public class WebViewDemoActivity extends Activity
 	{
 		// hides the keyboard
 		InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-		inputMethodManager.hideSoftInputFromWindow(url.getWindowToken(), 0);
+		inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
 
-		stopButton.setEnabled(true);
-
-		webview.loadUrl(url.getText().toString());
+		stopButton.setEnabled(true);		
+		
+		//http protocol by default
+		if (!urlPattern.matcher(urlEditText.getText().toString()).matches())
+		{
+			 urlEditText.setText("http://" + urlEditText.getText().toString());
+		}
+		webview.loadUrl(urlEditText.getText().toString());
 	}
 
 	public void back(View view)
