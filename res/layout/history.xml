@@ -22,13 +22,14 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="horizontal" 
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:background="@android:color/background_light">
 
     <ImageView
         android:id="@+id/favicon"
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/favicon_default_light" 
+        android:src="@drawable/favicon_default" 
         android:contentDescription="@string/favicon"
         android:layout_marginLeft="5dp"/>
 
@@ -38,6 +39,6 @@
         android:layout_marginLeft="5dp"
         android:layout_height="wrap_content"
         android:textColor="@android:color/black"
-        android:textSize="17dp" />
+        android:textSize="17sp" />
 
 </LinearLayout>

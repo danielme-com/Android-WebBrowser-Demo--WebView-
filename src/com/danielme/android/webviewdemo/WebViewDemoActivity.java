@@ -38,11 +38,14 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -235,7 +238,7 @@ public class WebViewDemoActivity extends Activity
 				Bitmap favicon = historyStack.get(position).getFavicon();
 				if (favicon == null)
 				{
-					holder.getImageView().setImageDrawable(super.getContext().getResources().getDrawable(R.drawable.favicon_default_light));
+					holder.getImageView().setImageDrawable(super.getContext().getResources().getDrawable(R.drawable.favicon_default));
 				}
 				else
 				{
@@ -293,27 +296,30 @@ public class WebViewDemoActivity extends Activity
 		@Override
 		public void onPageStarted(WebView view, String url, Bitmap favicon)
 		{
-			//resets favicon
-			WebViewDemoActivity.this.faviconImageView.setImageDrawable(WebViewDemoActivity.this.getResources().getDrawable(R.drawable.favicon_default_dark));
-			// shows the current url
-			WebViewDemoActivity.this.urlEditText.setText(url);
-			
-			//only one occurrence
-			boolean b = false;
-			ListIterator<Link> listIterator = historyStack.listIterator();
-			while (listIterator.hasNext() && !b)
+			if (checkConnectivity())
 			{
-				if (listIterator.next().getUrl().equals(url))
+				//resets favicon
+				WebViewDemoActivity.this.faviconImageView.setImageDrawable(WebViewDemoActivity.this.getResources().getDrawable(R.drawable.favicon_default));
+				// shows the current url
+				WebViewDemoActivity.this.urlEditText.setText(url);
+				
+				//only one occurrence
+				boolean b = false;
+				ListIterator<Link> listIterator = historyStack.listIterator();
+				while (listIterator.hasNext() && !b)
 				{
-					b = true;
-					listIterator.remove();
+					if (listIterator.next().getUrl().equals(url))
+					{
+						b = true;
+						listIterator.remove();
+					}
 				}
+				Link link = new Link(url, favicon);
+				historyStack.add(0, link);
+	
+				stopButton.setEnabled(true);
+				updateButtons();			
 			}
-			Link link = new Link(url, favicon);
-			historyStack.add(0, link);
-
-			stopButton.setEnabled(true);
-			updateButtons();			
 		}
 
 		@Override
@@ -341,24 +347,33 @@ public class WebViewDemoActivity extends Activity
 		InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
 		inputMethodManager.hideSoftInputFromWindow(urlEditText.getWindowToken(), 0);
 
-		stopButton.setEnabled(true);		
-		
-		//http protocol by default
-		if (!urlPattern.matcher(urlEditText.getText().toString()).matches())
-		{
-			 urlEditText.setText("http://" + urlEditText.getText().toString());
+		if (checkConnectivity())
+		{	
+			stopButton.setEnabled(true);		
+			
+			//http protocol by default
+			if (!urlPattern.matcher(urlEditText.getText().toString()).matches())
+			{
+				 urlEditText.setText("http://" + urlEditText.getText().toString());
+			}
+			webview.loadUrl(urlEditText.getText().toString());
 		}
-		webview.loadUrl(urlEditText.getText().toString());
 	}
 
 	public void back(View view)
 	{
-		webview.goBack();
+		if (checkConnectivity())
+		{
+			webview.goBack();
+		}
 	}
 
 	public void forward(View view)
 	{
-		webview.goForward();
+		if (checkConnectivity())
+		{
+			webview.goForward();
+		}
 	}
 
 	public void stop(View view)
@@ -504,6 +519,30 @@ public class WebViewDemoActivity extends Activity
 
 		}
 
+	}
+	
+	/**
+	 * Checks networking status.
+	 */
+	private boolean checkConnectivity()
+	{
+		boolean enabled = true;
+
+		ConnectivityManager connectivityManager = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+		
+		if ((info == null || !info.isConnected() || !info.isAvailable()))
+		{
+			enabled = false;
+			Builder builder = new Builder(this);
+			builder.setIcon(android.R.drawable.ic_dialog_alert);
+			builder.setMessage(getString(R.string.noconnection));
+			builder.setCancelable(false);
+			builder.setNeutralButton(R.string.ok, null);
+			builder.setTitle(getString(R.string.error));
+			builder.create().show();		
+		}
+		return enabled;			
 	}
 
 }

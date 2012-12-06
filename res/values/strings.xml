@@ -35,5 +35,8 @@
     <string name="close">Close</string>
     <string name="stopping">stopping</string>
     <string name="favicon">favicon</string>
+    <string name="noconnection">Internet connection not available</string>
+	<string name="error">Error</string>  
+    
 
 </resources>

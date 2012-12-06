@@ -34,5 +34,8 @@
     <string name="clear">Borrar</string>
     <string name="close">Cerrar</string>
     <string name="stopping">deteniendo</string>
+    <string name="favicon">favicon</string>    
+    <string name="noconnection">La conexión a Internet no se encuentra disponible</string>
+	<string name="error">Error</string>
 
 </resources>
