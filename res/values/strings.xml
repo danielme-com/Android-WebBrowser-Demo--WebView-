@@ -37,6 +37,6 @@
     <string name="favicon">favicon</string>
     <string name="noconnection">Internet connection not available</string>
 	<string name="error">Error</string>  
-    
+    <string name="nosd">Storage not available</string>  	
 
 </resources>

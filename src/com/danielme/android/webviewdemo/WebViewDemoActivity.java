@@ -43,11 +43,15 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -59,6 +63,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebIconDatabase;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebSettings.PluginState;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -87,7 +92,7 @@ public class WebViewDemoActivity extends Activity
 	private static final Pattern urlPattern = Pattern.compile("^(https?|ftp|file)://(.*?)");
 
 
-	@SuppressLint("SetJavaScriptEnabled")
+	@SuppressLint({ "SetJavaScriptEnabled", "NewApi" })
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -107,6 +112,15 @@ public class WebViewDemoActivity extends Activity
 		// javascript and zoom
 		webview.getSettings().setJavaScriptEnabled(true);
 		webview.getSettings().setBuiltInZoomControls(true);
+		
+		if (Build.VERSION.SDK_INT >= 8)
+		{
+			webview.getSettings().setPluginState(PluginState.ON);
+		}
+		else
+		{
+			webview.getSettings().setPluginsEnabled(true);
+		}
 
 		// downloads
 		webview.setDownloadListener(new CustomDownloadListener());
@@ -289,6 +303,13 @@ public class WebViewDemoActivity extends Activity
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url)
 		{
+			if (url.endsWith(".mp3") || url.endsWith(".aac"))
+			{
+				Intent intent = new Intent(Intent.ACTION_VIEW);				
+				intent.setDataAndType(Uri.parse(url),"audio/mpeg");
+				startActivity(intent);
+				return true;
+			}
 			return false;
 		}
 
@@ -454,57 +475,64 @@ public class WebViewDemoActivity extends Activity
 			String result = "";
 			String url = arg0[0];
 			
-			HttpClient httpClient = new DefaultHttpClient();
-			HttpGet httpGet = new HttpGet(url);
-			InputStream inputStream = null;
-			try
-			{
-				HttpResponse httpResponse = httpClient.execute(httpGet);
-
-				BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(httpResponse.getEntity());
-
-				inputStream = bufferedHttpEntity.getContent();
-				
-				String fileName = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/webviewdemo";
-				File directory = new File(fileName);
-				File file = new File(directory, url.substring(url.lastIndexOf("/")));				
-				directory.mkdirs();
-
-				// commons-io, I miss you :(
-				FileOutputStream fileOutputStream = new FileOutputStream(file);
-				ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-				byte[] buffer = new byte[1024];
-				int len = 0;
-				
-				while (inputStream.available() > 0 && (len = inputStream.read(buffer)) != -1)
+			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+			{							
+				HttpClient httpClient = new DefaultHttpClient();
+				HttpGet httpGet = new HttpGet(url);
+				InputStream inputStream = null;
+				try
 				{
-					byteArrayOutputStream.write(buffer, 0, len);
+					HttpResponse httpResponse = httpClient.execute(httpGet);
+	
+					BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(httpResponse.getEntity());
+	
+					inputStream = bufferedHttpEntity.getContent();
+					
+					String fileName = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/webviewdemo";
+					File directory = new File(fileName);
+					File file = new File(directory, url.substring(url.lastIndexOf("/")));				
+					directory.mkdirs();
+	
+					// commons-io, I miss you :(
+					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+					byte[] buffer = new byte[1024];
+					int len = 0;
+					
+					while (inputStream.available() > 0 && (len = inputStream.read(buffer)) != -1)
+					{
+						byteArrayOutputStream.write(buffer, 0, len);
+					}
+					
+					fileOutputStream.write(byteArrayOutputStream.toByteArray());
+					fileOutputStream.flush();
+					
+					result = getString(R.string.result) + file.getAbsolutePath();
 				}
-				
-				fileOutputStream.write(byteArrayOutputStream.toByteArray());
-				fileOutputStream.flush();
-				
-				result = getString(R.string.result) + file.getAbsolutePath();
-			}
-			catch (Exception ex)
-			{
-				Log.e(WebViewDemoActivity.class.toString(), ex.getMessage(), ex);
-				result = ex.getClass().getSimpleName() + " " + ex.getMessage();
-			}
-			finally
-			{
-				if (inputStream != null)
+				catch (Exception ex)
 				{
-					try
+					Log.e(WebViewDemoActivity.class.toString(), ex.getMessage(), ex);
+					result = ex.getClass().getSimpleName() + " " + ex.getMessage();
+				}
+				finally
+				{
+					if (inputStream != null)
 					{
-						inputStream.close();
-					}
-					catch (IOException ex)
-					{
-						Log.e(WebViewDemoActivity.class.toString(), ex.getMessage(), ex);
-						result = ex.getClass().getSimpleName() + " " + ex.getMessage();
+						try
+						{
+							inputStream.close();
+						}
+						catch (IOException ex)
+						{
+							Log.e(WebViewDemoActivity.class.toString(), ex.getMessage(), ex);
+							result = ex.getClass().getSimpleName() + " " + ex.getMessage();
+						}
 					}
 				}
+			}
+			else
+			{
+				result = getString(R.string.nosd);
 			}
 
 			return result;

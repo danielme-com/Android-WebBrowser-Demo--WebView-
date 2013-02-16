@@ -37,5 +37,6 @@
     <string name="favicon">favicon</string>    
     <string name="noconnection">La conexión a Internet no se encuentra disponible</string>
 	<string name="error">Error</string>
-
+ 	<string name="nosd">Almacenamiento no disponible</string>  
+ 
 </resources>
