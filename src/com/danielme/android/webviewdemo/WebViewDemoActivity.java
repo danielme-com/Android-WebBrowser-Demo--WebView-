@@ -106,19 +106,21 @@ public class WebViewDemoActivity extends Activity
 		urlEditText = (EditText) findViewById(R.id.url);
 		progressBar = (ProgressBar) findViewById(R.id.progressbar);	
 		stopButton = ((Button) findViewById(R.id.stopButton));
-		//favicon
-		WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());
+		//favicon, deprecated since Android 4.3 but it's still necesary O_O ¿?
+		WebIconDatabase.getInstance().open(getDir("icons", MODE_PRIVATE).getPath());		
 		
 		// javascript and zoom
 		webview.getSettings().setJavaScriptEnabled(true);
 		webview.getSettings().setBuiltInZoomControls(true);
 		
-		if (Build.VERSION.SDK_INT >= 8)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
 		{
 			webview.getSettings().setPluginState(PluginState.ON);
 		}
 		else
 		{
+			//IMPORTANT!! this method is no longer available since Android 4.3
+			//so the code doesn't compile anymore
 			webview.getSettings().setPluginsEnabled(true);
 		}
 
@@ -151,11 +153,18 @@ public class WebViewDemoActivity extends Activity
 			public void onReceivedTitle(WebView view, String title)
 			{
 				WebViewDemoActivity.this.setTitle(getString(R.string.app_name) + " - " + WebViewDemoActivity.this.webview.getTitle());
+				for(Link link : historyStack)
+				{
+					if (link.getUrl().equals(WebViewDemoActivity.this.webview.getUrl()))
+					{
+						link.setTitle(title);
+					}
+				}
 			}
 			
 			@Override
 			public void onReceivedIcon(WebView view, Bitmap icon)
-			{				
+			{	 			
 				faviconImageView.setImageBitmap(icon);
 				view.getUrl();
 				boolean b = false;
@@ -248,8 +257,17 @@ public class WebViewDemoActivity extends Activity
 					holder = (LinkHolder) convertView.getTag();
 				}
 
-				holder.getUrl().setText(historyStack.get(position).getUrl());
-				Bitmap favicon = historyStack.get(position).getFavicon();
+				Link link = historyStack.get(position);
+				//show title when available
+				if (link.getTitle() != null)
+				{
+					holder.getUrl().setText(link.getTitle());
+				}
+				else
+				{
+					holder.getUrl().setText(link.getUrl());
+				}
+				Bitmap favicon = link.getFavicon();
 				if (favicon == null)
 				{
 					holder.getImageView().setImageDrawable(super.getContext().getResources().getDrawable(R.drawable.favicon_default));
@@ -480,6 +498,7 @@ public class WebViewDemoActivity extends Activity
 				HttpClient httpClient = new DefaultHttpClient();
 				HttpGet httpGet = new HttpGet(url);
 				InputStream inputStream = null;
+				FileOutputStream fileOutputStream = null;
 				try
 				{
 					HttpResponse httpResponse = httpClient.execute(httpGet);
@@ -494,7 +513,7 @@ public class WebViewDemoActivity extends Activity
 					directory.mkdirs();
 	
 					// commons-io, I miss you :(
-					FileOutputStream fileOutputStream = new FileOutputStream(file);
+					fileOutputStream = new FileOutputStream(file);
 					ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 					byte[] buffer = new byte[1024];
 					int len = 0;
@@ -521,6 +540,18 @@ public class WebViewDemoActivity extends Activity
 						try
 						{
 							inputStream.close();
+						}
+						catch (IOException ex)
+						{
+							Log.e(WebViewDemoActivity.class.toString(), ex.getMessage(), ex);
+							result = ex.getClass().getSimpleName() + " " + ex.getMessage();
+						}
+					}
+					if (fileOutputStream != null)
+					{
+						try
+						{
+							fileOutputStream.close();
 						}
 						catch (IOException ex)
 						{

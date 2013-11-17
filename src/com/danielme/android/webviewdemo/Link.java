@@ -24,13 +24,14 @@ public class Link
 	
 	private String url;
 	
+	private String title;
+	
 	private Bitmap favicon;
 	
 	public Link()
 	{
 		
 	}
-
 	
 	public Link(String url, Bitmap favicon)
 	{
@@ -38,7 +39,6 @@ public class Link
 		this.url = url;
 		this.favicon = favicon;
 	}
-
 
 	public String getUrl()
 	{
@@ -58,6 +58,18 @@ public class Link
 	public void setFavicon(Bitmap favicon)
 	{
 		this.favicon = favicon;
+	}
+
+
+	public String getTitle()
+	{
+		return title;
+	}
+
+
+	public void setTitle(String title)
+	{
+		this.title = title;
 	}
 	
 	
