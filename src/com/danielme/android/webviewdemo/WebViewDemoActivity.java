@@ -23,17 +23,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.regex.Pattern;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -43,11 +39,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -321,13 +315,7 @@ public class WebViewDemoActivity extends Activity
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url)
 		{
-			if (url.endsWith(".mp3") || url.endsWith(".aac"))
-			{
-				Intent intent = new Intent(Intent.ACTION_VIEW);				
-				intent.setDataAndType(Uri.parse(url),"audio/mpeg");
-				startActivity(intent);
-				return true;
-			}
+			
 			return false;
 		}
 
@@ -491,25 +479,23 @@ public class WebViewDemoActivity extends Activity
 		protected String doInBackground(String... arg0)
 		{
 			String result = "";
-			String url = arg0[0];
+			String urlString = arg0[0];
 			
 			if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
-			{							
-				HttpClient httpClient = new DefaultHttpClient();
-				HttpGet httpGet = new HttpGet(url);
+			{	
 				InputStream inputStream = null;
 				FileOutputStream fileOutputStream = null;
 				try
-				{
-					HttpResponse httpResponse = httpClient.execute(httpGet);
-	
-					BufferedHttpEntity bufferedHttpEntity = new BufferedHttpEntity(httpResponse.getEntity());
-	
-					inputStream = bufferedHttpEntity.getContent();
+				{		
+					
+					URL url = new URL(urlString);
+					HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+					connection.setRequestMethod("GET");
+					inputStream = connection.getInputStream();
 					
 					String fileName = android.os.Environment.getExternalStorageDirectory().getAbsolutePath() + "/webviewdemo";
 					File directory = new File(fileName);
-					File file = new File(directory, url.substring(url.lastIndexOf("/")));				
+					File file = new File(directory, urlString.substring(urlString.lastIndexOf("/")));				
 					directory.mkdirs();
 	
 					// commons-io, I miss you :(
